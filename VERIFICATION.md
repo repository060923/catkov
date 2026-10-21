@@ -20,11 +20,11 @@ Verification host: macOS (Darwin 24.6.0), Node.js v24.7.0, npm 11.5.1. No native
 | Old identity in tracked files and fresh `dist` | No matches at verification | Not applicable |
 | PowerShell execution, UTF-8 I/O, interactive stdin, timeout, Job Object/descendant termination, self-development | Not executable on macOS; 4 tests skipped | **Not tested** |
 
-The original ToolDefinition → ToolRegistry → MCP Server → RuntimeKernel flow and the existing Windows ProcessManager/Job Object launcher are preserved. No extra MCP tools, external runtime dependencies, ngrok configuration or public transport were added. The project is packaged for publication as repository060923/catkov.
+The original ToolDefinition → ToolRegistry → MCP Server → RuntimeKernel flow and the existing Windows ProcessManager/Job Object launcher are preserved. No extra MCP tools, external runtime dependencies, ngrok configuration or public transport were added. The project is published at `https://github.com/repository060923/catkov` (public repository).
 
 As of 2026-10-21, the MCP server SDK was upgraded to `@modelcontextprotocol/server@2.3.1`. After upgrading, `npm audit` reported **0 vulnerabilities**, and typecheck, 5 applicable tests, and build passed (4 Windows-only tests still skipped). The default local transport listens on `127.0.0.1`.
 
-**Scope of conclusion:** macOS contract checks and compiled-server smoke tests passed. Full Windows compatibility and process-tree cleanup remain unverified until the native Windows integration suite is run.
+**Scope of conclusion:** macOS contract checks and compiled-server smoke tests passed. The native Windows Server 2022 CI suite subsequently passed on 2026-10-21, including Windows ProcessManager and Job Object cleanup; Windows 10/11 desktop testing is still not completed.
 
 ## Public ngrok deployment — 2026-10-21
 
@@ -35,3 +35,18 @@ As of 2026-10-21, the MCP server SDK was upgraded to `@modelcontextprotocol/serv
 - Runtime deployment is a compiled bundle in `~/Library/Application Support/catkov/runtime` to work around macOS LaunchAgent privacy permissions on the source directory under `Documents`.
 - **Not verified:** Windows-specific PowerShell execution, stdin and process-tree/Job Object cleanup on native Windows. This macOS deployment does not provide functional PowerShell execution via `shell`.
 - **Security:** `/mcp` has no client authorization by explicit user choice. An untrusted party reaching the public domain can invoke tools; this is unsafe when `shell` is functional on a Windows host.
+
+## GitHub Windows CI — 2026-10-21
+
+Public source repository: `https://github.com/repository060923/catkov`, branch `main`.
+
+GitHub Actions run: `https://github.com/repository060923/catkov/actions/runs/39574256539`.
+
+Windows Server 2022, Node.js 24, native GitHub-hosted runner:
+
+- `npm ci`: **PASS**.
+- `npm run typecheck`: **PASS**.
+- `npm test`: **9 passed, 0 failed, 0 skipped**. This includes Windows PowerShell command execution, Unicode, stdout/stderr, env/cwd, interactive stdin, lifecycle controls, timeouts, descendant cleanup using Job Objects, HTTP MCP calls and self-development.
+- `npm run build`: **PASS**.
+
+The older macOS table above documents the original development-host results and is not a substitute for this later Windows CI validation. The GitHub runner is Windows Server 2022, not Windows 10/11 desktop.
