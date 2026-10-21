@@ -2,6 +2,28 @@
 
 Standalone **Windows 10/11 x64** local engineering MCP server. Runs with permissions of the signed-in Windows user. Node.js 20+, npm, TypeScript, Zod, and the official Model Context Protocol SDK. No WSL, macOS components, ngrok, or browser dependencies.
 
+## One-command Windows setup (no EXE)
+
+Use the checked-in PowerShell bootstrap; **no executable is built or distributed**. After installing Git and cloning this repository, run:
+
+```powershell
+git clone https://github.com/repository060923/catkov.git
+cd catkov
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\setup-windows.ps1
+```
+
+The script checks/installs Node.js and ngrok via winget, runs `npm ci`, typecheck, all Windows tests and build, places a self-contained production deployment in `%LOCALAPPDATA%\catkov\runtime`, starts the localhost MCP server on port 8791 and registers its login startup shortcut. The reserved domain is preconfigured, **but not claimed automatically while its existing Mac tunnel is online**. Nothing containing ngrok secrets is committed to GitHub. To use another existing workspace, run setup with `-Workspace 'C:\Projects'`.
+
+When the owner has stopped the old macOS ngrok tunnel and handed over a **valid authtoken of the same owning ngrok account**, run on Windows:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\activate-windows.ps1
+```
+
+This prompts once for the existing ngrok account token, starts the reserved tunnel, checks that public MCP `runtime_context.platform` reports `win32`, and registers tunnel startup at Windows login. If ngrok credentials were already set up locally, use `-UseExistingNgrokCredential`. If activation fails, review `%LOCALAPPDATA%\catkov\ngrok.stderr.log`, resolve domain ownership or stop the Mac tunnel, and repeat.
+
+The **only ChatGPT-side action** is registering `https://overtame-kadence-noncoincidentally.ngrok-free.dev/mcp` with **Authentication: None**. Until the handover, the same domain continues to point to the existing Mac server. **Security warning:** unauthenticated MCP makes `shell` available to any client able to contact the public URL; do not expose sensitive machines or accounts in this configuration.
+
 ## Quick setup on Windows 10/11 x64
 
 Requirements: **Windows PowerShell**, Windows x64, Node.js 20+ and Git. These commands install the prerequisites using Windows Package Manager (if already installed, skip those lines). **Open a new PowerShell window after installing Node.js and Git** so the PATH refreshes:

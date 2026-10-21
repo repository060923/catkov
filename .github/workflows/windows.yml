@@ -17,3 +17,16 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
+
+      - name: Validate Windows bootstrap scripts
+        shell: powershell
+        run: |
+          .\scripts\setup-windows.ps1 -DryRun
+          .\scripts\activate-windows.ps1 -DryRun
+      - name: Install and smoke-test local Windows runtime
+        shell: powershell
+        run: |
+          .\scripts\setup-windows.ps1 -LocalOnly
+          $health = Invoke-RestMethod http://127.0.0.1:8791/health
+          if ($health.runtime -ne 'catkov') { throw 'Local bootstrap smoke failed' }
+          Write-Host 'WINDOWS BOOTSTRAP SMOKE PASSED'
