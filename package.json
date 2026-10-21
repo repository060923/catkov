@@ -4,7 +4,9 @@
   "private": true,
   "type": "module",
   "description": "Minimal local Windows MCP engineering runtime",
-  "engines": { "node": ">=20" },
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "node --import tsx --test tests/*.test.ts",
@@ -14,7 +16,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/node": "2.0.0",
-    "@modelcontextprotocol/server": "2.0.0",
+    "@modelcontextprotocol/server": "2.3.1",
     "zod": "4.4.3"
   },
   "devDependencies": {

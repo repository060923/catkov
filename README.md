@@ -37,6 +37,29 @@ To run as a stdio MCP server instead, after building:
 npm run start:stdio
 ```
 
+## Public HTTP MCP via ngrok (optional, no client authentication)
+
+The MCP endpoint is `/mcp`; `/health` is for diagnostics. ChatGPT-compatible clients can connect to a publicly reachable HTTPS `/mcp` URL with **Authentication: None**. No bearer token or OAuth is implemented in catkov. The ngrok authtoken belongs to the **ngrok agent**, not to the MCP client; store it in the operator's private ngrok configuration, never in Git or ChatGPT.
+
+A Windows operator can use two PowerShell terminals after `npm ci` and `npm run build`:
+
+```powershell
+# Terminal 1: local MCP
+$env:CATKOV_HOST = '127.0.0.1'
+$env:CATKOV_PORT = '8791'
+npm start
+
+# Terminal 2: ngrok must already be installed and connected to your account
+# Reserve your own HTTPS domain in ngrok first and configure its authtoken locally.
+ngrok http 8791 --url https://YOUR-RESERVED-DOMAIN.ngrok-free.dev
+```
+
+Register `https://YOUR-RESERVED-DOMAIN.ngrok-free.dev/mcp` in the MCP client and select **no authentication**. The registered domain must belong to the ngrok account whose local agent credentials are configured. Use separate startup automation on Windows if the owner wants unattended service operation.
+
+**Security consequence:** anyone able to reach this unauthenticated endpoint can call `shell`, which executes commands with the permissions of the running user. A random ngrok hostname is not an access-control mechanism. Do not expose a machine or workspace containing sensitive information to untrusted clients.
+
+The temporary macOS-hosted instance used for connector validation on 2026-10-21 runs on `127.0.0.1:18794` through separate user LaunchAgents (`com.local.catkov`, `com.local.catkov.ngrok`) at `https://overtame-kadence-noncoincidentally.ngrok-free.dev/mcp`. Its compiled deployment resides under `~/Library/Application Support/catkov/runtime`; canonical sources remain in the project directory. **Windows PowerShell execution does not function on this macOS host.** The Mac service is proof of the HTTP MCP connection, not a Windows-native shell validation.
+
 ## MCP tool contract
 
 | Tool | Input | Behavior |
