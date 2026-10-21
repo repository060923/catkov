@@ -45,7 +45,7 @@ $startup = [Environment]::GetFolderPath('Startup')
 $runner = Join-Path $installRoot 'run-ngrok.ps1'
 $powerShellPath = "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe"
 if (-not (Test-Path -LiteralPath $runner)) { throw 'ngrok launcher missing; rerun setup.' }
-$ngrokArgs = 'http ' + [string]$config.port + ' --url https://' + $domain + ' --log stderr
+$ngrokArgs = 'http ' + [string]$config.port + ' --url https://' + $domain + ' --log stderr'
 $ngrokProcess = Start-Process -FilePath $config.ngrok -ArgumentList $ngrokArgs -WindowStyle Hidden -RedirectStandardOutput (Join-Path $installRoot 'ngrok.stdout.log') -RedirectStandardError (Join-Path $installRoot 'ngrok.stderr.log') -PassThru
 $verified = $false
 for ($i = 0; $i -lt 30; $i++) {
