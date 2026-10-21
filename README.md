@@ -2,63 +2,68 @@
 
 Standalone **Windows 10/11 x64** local engineering MCP server. Runs with permissions of the signed-in Windows user. Node.js 20+, npm, TypeScript, Zod, and the official Model Context Protocol SDK. No WSL, macOS components, ngrok, or browser dependencies.
 
-## Installation and launch (Windows PowerShell)
+## Quick setup on Windows 10/11 x64
 
-Clone the repository from its future Git remote, then run in the cloned project directory:
+Requirements: **Windows PowerShell**, Windows x64, Node.js 20+ and Git. These commands install the prerequisites using Windows Package Manager (if already installed, skip those lines). **Open a new PowerShell window after installing Node.js and Git** so the PATH refreshes:
 
 ```powershell
-# Use your actual Git remote URL when one has been configured.
-git clone '<REPOSITORY_URL>' catkov
+winget install --id Git.Git --exact
+winget install --id OpenJS.NodeJS.LTS --exact
+winget install ngrok -s msstore
+```
+
+### Terminal 1 — download, build and start catkov
+
+```powershell
+git clone https://github.com/repository060923/catkov.git
 Set-Location .\catkov
-node --version                    # 20 or newer
 npm ci
-npm run typecheck
-npm test
 npm run build
 
-# Optional: default workspace to expose in runtime_context
-$env:CATKOV_WORKSPACE = 'C:\Users\Public\Documents'
-# Optional: default 8791, change it if occupied
+# Choose an existing workspace folder that catkov may access, or leave unset
+# to use the current project directory:
+# $env:CATKOV_WORKSPACE = 'C:\Users\Public\Documents'
+
+$env:CATKOV_HOST = '127.0.0.1'
 $env:CATKOV_PORT = '8791'
 npm start
 ```
 
-The default binding is **http://127.0.0.1:8791/mcp** (local loopback only). Health is **http://127.0.0.1:8791/health**. In another PowerShell window:
+Leave this terminal open. The MCP endpoint is `http://127.0.0.1:8791/mcp`. Open a separate PowerShell window to check it:
 
 ```powershell
 Invoke-RestMethod http://127.0.0.1:8791/health
 ```
 
-Optional `CATKOV_HOST` overrides the listen host (default `127.0.0.1`). `CATKOV_PORT` sets the port, `CATKOV_WORKSPACE` sets the default existing workspace. The workspace defaults to the runtime's current working directory. All paths are resolved at runtime; paths containing spaces and Unicode are supported. Avoid exposing the HTTP port to untrusted networks: `shell` executes code with your user permissions.
+### Terminal 2 — public HTTPS (optional)
 
-To run as a stdio MCP server instead, after building:
-
-```powershell
-npm run start:stdio
-```
-
-## Public HTTP MCP via ngrok (optional, no client authentication)
-
-The MCP endpoint is `/mcp`; `/health` is for diagnostics. ChatGPT-compatible clients can connect to a publicly reachable HTTPS `/mcp` URL with **Authentication: None**. No bearer token or OAuth is implemented in catkov. The ngrok authtoken belongs to the **ngrok agent**, not to the MCP client; store it in the operator's private ngrok configuration, never in Git or ChatGPT.
-
-A Windows operator can use two PowerShell terminals after `npm ci` and `npm run build`:
+Each operator uses their **own ngrok account, authtoken and reserved HTTPS domain**. A domain already in use by someone else must not be reused. Do not commit the authtoken to Git or include it in the ChatGPT plugin configuration.
 
 ```powershell
-# Terminal 1: local MCP
-$env:CATKOV_HOST = '127.0.0.1'
-$env:CATKOV_PORT = '8791'
-npm start
+# Configure once (prompts for your ngrok account authtoken without writing it into the command history):
+ngrok config add-authtoken (Read-Host 'Enter your ngrok authtoken')
 
-# Terminal 2: ngrok must already be installed and connected to your account
-# Reserve your own HTTPS domain in ngrok first and configure its authtoken locally.
+# Replace this placeholder with the HTTPS domain reserved in YOUR ngrok account:
 ngrok http 8791 --url https://YOUR-RESERVED-DOMAIN.ngrok-free.dev
 ```
 
-Register `https://YOUR-RESERVED-DOMAIN.ngrok-free.dev/mcp` in the MCP client and select **no authentication**. The registered domain must belong to the ngrok account whose local agent credentials are configured. Use separate startup automation on Windows if the owner wants unattended service operation.
+The ngrok console should show a forwarding URL. Check `https://YOUR-RESERVED-DOMAIN.ngrok-free.dev/health` and register **`https://YOUR-RESERVED-DOMAIN.ngrok-free.dev/mcp`** as a remote MCP server with **Authentication: None**. Keep both PowerShell windows running while using the plugin. The ngrok authtoken only authorizes the tunnel with ngrok; it is not MCP client authentication.
 
-**Security consequence:** anyone able to reach this unauthenticated endpoint can call `shell`, which executes commands with the permissions of the running user. A random ngrok hostname is not an access-control mechanism. Do not expose a machine or workspace containing sensitive information to untrusted clients.
+**Important:** this mode has **no MCP client authorization**. Anyone who can reach the public endpoint can call `shell`, which runs PowerShell with your Windows user privileges. Treat this as a trusted/private deployment only. A random ngrok domain is not security control.
 
-The temporary macOS-hosted instance used for connector validation on 2026-10-21 runs on `127.0.0.1:18794` through separate user LaunchAgents (`com.local.catkov`, `com.local.catkov.ngrok`) at `https://overtame-kadence-noncoincidentally.ngrok-free.dev/mcp`. Its compiled deployment resides under `~/Library/Application Support/catkov/runtime`; canonical sources remain in the project directory. **Windows PowerShell execution does not function on this macOS host.** The Mac service is proof of the HTTP MCP connection, not a Windows-native shell validation.
+### Verify the Windows implementation
+
+From the project folder in another terminal:
+
+```powershell
+npm run typecheck
+npm test
+npm run build
+```
+
+The tests include native Windows PowerShell, interactive IO, timeout and process-tree termination checks. Do not treat tests run on another OS as equivalent to these native checks. For a local stdio MCP server instead of HTTP, run `npm run start:stdio` after building. Optional `CATKOV_HOST`, `CATKOV_PORT`, and `CATKOV_WORKSPACE` override the default loopback host, port (`8791`), and workspace (current directory).
+
+The initial connector smoke-test on 2026-10-21 used macOS LaunchAgents with `overtame-kadence-noncoincidentally.ngrok-free.dev`. This **is not a transferable domain** and is not part of the Windows install; every other operator must reserve and configure their own domain. Windows `shell` cannot execute on the macOS test host.
 
 ## MCP tool contract
 
@@ -101,4 +106,4 @@ npm start
 
 `tests/mcp.test.ts` runs real HTTP /health, initialize, tools/list, and all four tool calls. `tests/workspace.test.ts` verifies SHA-256, nested AGENTS.md, Unicode paths, explicit roots and errors. `tests/windows-shell.test.ts` validates Windows PowerShell execution, standard IO, exit codes, env/cwd, start/poll/write/stop, timeouts, descendant cleanup and agent self-development on Windows. These integration tests are intentionally skipped on non-Windows platforms.
 
-See `VERIFICATION.md` for observed test evidence and remaining platform limitations. Public ngrok transport, repository publication, and Windows auto-start/service setup are outside this project.
+See `VERIFICATION.md` for observed test evidence and remaining platform limitations. Local HTTP is built in, ngrok is an optional externally managed tunnel, and no built-in Windows auto-start/service setup is provided.

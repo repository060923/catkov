@@ -20,7 +20,7 @@ Verification host: macOS (Darwin 24.6.0), Node.js v24.7.0, npm 11.5.1. No native
 | Old identity in tracked files and fresh `dist` | No matches at verification | Not applicable |
 | PowerShell execution, UTF-8 I/O, interactive stdin, timeout, Job Object/descendant termination, self-development | Not executable on macOS; 4 tests skipped | **Not tested** |
 
-The original ToolDefinition → ToolRegistry → MCP Server → RuntimeKernel flow and the existing Windows ProcessManager/Job Object launcher are preserved. No extra MCP tools, external runtime dependencies, ngrok configuration or public transport were added. The project is not published.
+The original ToolDefinition → ToolRegistry → MCP Server → RuntimeKernel flow and the existing Windows ProcessManager/Job Object launcher are preserved. No extra MCP tools, external runtime dependencies, ngrok configuration or public transport were added. The project is packaged for publication as repository060923/catkov.
 
 As of 2026-10-21, the MCP server SDK was upgraded to `@modelcontextprotocol/server@2.3.1`. After upgrading, `npm audit` reported **0 vulnerabilities**, and typecheck, 5 applicable tests, and build passed (4 Windows-only tests still skipped). The default local transport listens on `127.0.0.1`.
 

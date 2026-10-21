@@ -26,7 +26,7 @@ test('PowerShell encoded command preserves Unicode, quotes and Job Object primit
 });
 
 test('Windows exec captures stdout, stderr, native exit code, env and cwd', { skip: !windows }, async () => {
-  const root = await mkdtemp(join(tmpdir(), 'ракушка test '));
+  const root = await mkdtemp(join(tmpdir(), 'catkov кириллица test '));
   const manager = new ProcessManager();
   try {
     const ok = await manager.exec("Write-Output 'Привет'; [Console]::Error.WriteLine('ошибка')", {
@@ -42,7 +42,7 @@ test('Windows exec captures stdout, stderr, native exit code, env and cwd', { sk
     });
     assert.equal(variable.exit_code, 0, JSON.stringify(variable));
     assert.match(String(variable.stdout), /кириллица/);
-    assert.match(String(variable.stdout), /ракушка test/);
+    assert.match(String(variable.stdout), /catkov кириллица test/);
   } finally {
     await manager.shutdown();
     await rm(root, { recursive: true, force: true });

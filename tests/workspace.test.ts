@@ -8,7 +8,7 @@ import { RuntimeError } from '../src/errors.js';
 import { WorkspaceManager } from '../src/workspace.js';
 
 test('workspace instructions are hierarchical, SHA verified and root-isolated', async () => {
-  const root = await mkdtemp(join(tmpdir(), 'ракушка workspace '));
+  const root = await mkdtemp(join(tmpdir(), 'catkov workspace '));
   const other = await mkdtemp(join(tmpdir(), 'catkov other '));
   try {
     await mkdir(join(root, 'sub dir', 'тест'), { recursive: true });
