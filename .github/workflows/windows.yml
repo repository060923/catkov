@@ -30,3 +30,10 @@ jobs:
           $health = Invoke-RestMethod http://127.0.0.1:8791/health
           if ($health.runtime -ne 'catkov') { throw 'Local bootstrap smoke failed' }
           Write-Host 'WINDOWS BOOTSTRAP SMOKE PASSED'
+      - name: Bootstrap failure diagnostics
+        if: failure()
+        shell: powershell
+        run: |
+          $d = Join-Path $env:LOCALAPPDATA 'catkov'
+          Get-Content (Join-Path $d 'mcp.log') -Tail 45 -ErrorAction SilentlyContinue
+          Get-ChildItem $d -ErrorAction SilentlyContinue | Select-Object Name,Length

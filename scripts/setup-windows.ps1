@@ -109,7 +109,8 @@ $env:CATKOV_HOST = '127.0.0.1'
 $env:CATKOV_PORT = [string]$config.port
 $env:CATKOV_WORKSPACE = [string]$config.workspace
 Set-Location -LiteralPath $config.runtime
-& $config.node (Join-Path $config.runtime 'dist/src/http.js') *>> (Join-Path $PSScriptRoot 'mcp.log')
+$ErrorActionPreference = 'Continue'
+& $config.node (Join-Path $config.runtime 'dist/src/http.js') 1>> (Join-Path $PSScriptRoot 'mcp.stdout.log') 2>> (Join-Path $PSScriptRoot 'mcp.log')
 '@ | Set-Content -LiteralPath $runHttp -Encoding UTF8
 @'
 $ErrorActionPreference = 'Stop'
