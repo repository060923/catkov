@@ -58,7 +58,7 @@ $ngrok = ''
 if (-not $LocalOnly) {
     $ngrok = Ensure-Program 'ngrok.exe' @('install','ngrok','-s','msstore','--accept-source-agreements','--accept-package-agreements')
 }
-$nodeMajor = [int]((& $node -p 'process.versions.node.split(".")[0]').Trim())
+$nodeMajor = [int](((& $node --version).Trim().TrimStart('v') -split '\.')[0])
 if ($nodeMajor -lt 20) { throw "Node.js 20 or newer required; installed version: $(& $node --version)" }
 
 Write-Host 'Checking and building catkov...'
