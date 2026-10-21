@@ -1,0 +1,25 @@
+{
+  "name": "catkov",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Minimal local Windows MCP engineering runtime",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node --import tsx --test tests/*.test.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/src/http.js",
+    "start:stdio": "node dist/src/stdio.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/node": "2.0.0",
+    "@modelcontextprotocol/server": "2.0.0",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "24.13.3",
+    "tsx": "4.23.12",
+    "typescript": "7.0.2"
+  }
+}
