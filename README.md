@@ -35,19 +35,35 @@ Leave this terminal open. The MCP endpoint is `http://127.0.0.1:8791/mcp`. Open 
 Invoke-RestMethod http://127.0.0.1:8791/health
 ```
 
-### Terminal 2 — public HTTPS (optional)
+### Terminal 2 — connect the existing reserved ngrok domain
 
-Each operator uses their **own ngrok account, authtoken and reserved HTTPS domain**. A domain already in use by someone else must not be reused. Do not commit the authtoken to Git or include it in the ChatGPT plugin configuration.
+The project already has a reserved HTTPS domain:
+
+- **MCP endpoint:** `https://overtame-kadence-noncoincidentally.ngrok-free.dev/mcp`
+- **Health check:** `https://overtame-kadence-noncoincidentally.ngrok-free.dev/health`
+
+This hostname is registered for **catkov** in the owner's `NGROK_REGISTRY.md`; do **not** reserve another domain. The Windows operator **must have a ngrok authtoken from the account that owns this domain**. An unrelated ngrok account cannot attach to an existing reserved hostname. Obtain access to the existing account through its owner using a secure channel. Do not put the authtoken in Git, logs, ChatGPT, or the public README.
 
 ```powershell
-# Configure once (prompts for your ngrok account authtoken without writing it into the command history):
-ngrok config add-authtoken (Read-Host 'Enter your ngrok authtoken')
+# Configure the owning account once. The token is requested interactively:
+ngrok config add-authtoken (Read-Host 'ngrok authtoken')
 
-# Replace this placeholder with the HTTPS domain reserved in YOUR ngrok account:
-ngrok http 8791 --url https://YOUR-RESERVED-DOMAIN.ngrok-free.dev
+# Use the exact existing domain; keep this PowerShell window running:
+ngrok http 8791 --url https://overtame-kadence-noncoincidentally.ngrok-free.dev
 ```
 
-The ngrok console should show a forwarding URL. Check `https://YOUR-RESERVED-DOMAIN.ngrok-free.dev/health` and register **`https://YOUR-RESERVED-DOMAIN.ngrok-free.dev/mcp`** as a remote MCP server with **Authentication: None**. Keep both PowerShell windows running while using the plugin. The ngrok authtoken only authorizes the tunnel with ngrok; it is not MCP client authentication.
+**Handover from the current Mac host:** the domain is already being served by the owner's macOS service `com.local.catkov.ngrok`. The owner must release that tunnel at cutover, or the new Windows ngrok agent may fail to claim the domain. To disable its autostart and stop it **on the original Mac**, the owner can run:
+
+```bash
+launchctl disable "gui/$(id -u)/com.local.catkov.ngrok"
+launchctl bootout "gui/$(id -u)/com.local.catkov.ngrok"
+```
+
+Do not run these macOS commands before the Windows host is ready for cutover. The domain is deliberately **not** stopped as part of the installation documentation update. Do not run two simultaneous upstreams for this public MCP domain.
+
+After starting ngrok on Windows, confirm that the public health URL returns `"runtime":"catkov"`. The `runtime_context` response must also report `"platform":"win32"` — a health response from the old Mac host alone does **not** prove the Windows handover. If ngrok reports a domain/account ownership or already-online error, resolve the account access or stop the old tunnel before retrying.
+
+Register the existing **`https://overtame-kadence-noncoincidentally.ngrok-free.dev/mcp`** URL in ChatGPT, with **Authentication: None**. The same plugin URL remains valid after the owner switches the tunnel from Mac to Windows. The ngrok authtoken only authorizes creation of the tunnel; it is not MCP client authentication.
 
 **Important:** this mode has **no MCP client authorization**. Anyone who can reach the public endpoint can call `shell`, which runs PowerShell with your Windows user privileges. Treat this as a trusted/private deployment only. A random ngrok domain is not security control.
 
@@ -63,7 +79,7 @@ npm run build
 
 The tests include native Windows PowerShell, interactive IO, timeout and process-tree termination checks. Do not treat tests run on another OS as equivalent to these native checks. For a local stdio MCP server instead of HTTP, run `npm run start:stdio` after building. Optional `CATKOV_HOST`, `CATKOV_PORT`, and `CATKOV_WORKSPACE` override the default loopback host, port (`8791`), and workspace (current directory).
 
-The initial connector smoke-test on 2026-10-21 used macOS LaunchAgents with `overtame-kadence-noncoincidentally.ngrok-free.dev`. This **is not a transferable domain** and is not part of the Windows install; every other operator must reserve and configure their own domain. Windows `shell` cannot execute on the macOS test host.
+The initial connector smoke-test on 2026-10-21 used macOS LaunchAgents with the same reserved domain. The hostname stays fixed during the authorized handover, but the upstream runtime must move to Windows. Windows `shell` cannot execute on the macOS test host.
 
 ## MCP tool contract
 
